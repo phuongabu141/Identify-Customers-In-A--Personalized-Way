@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    password: aVBfQIzm7czruosPfMsd8jUOnsYFXidJ
+    url: jdbc:postgresql://dpg-cljvonmukbfc738v2atg-a.oregon-postgres.render.com:5432/loyalty_db
+    username: tranhuutruong2904

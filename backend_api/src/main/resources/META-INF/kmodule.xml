@@ -1,0 +1,9 @@
+<kmodule xmlns="http://www.drools.org/xsd/kmodule">
+    <kbase name="label" packages="rules.label">
+        <ksession name="label" type="stateful"/>
+    </kbase>
+
+    <kbase name="product" packages="rules.product">
+        <ksession name="product" type="stateful"/>
+    </kbase>
+</kmodule>

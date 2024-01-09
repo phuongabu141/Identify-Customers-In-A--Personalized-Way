@@ -1,0 +1,64 @@
+import com.loyalty.identity_customer.model.GroupModel;
+import com.loyalty.identity_customer.model.ConditionModel;
+import com.loyalty.identity_customer.model.CustomerAttributeModel;
+import com.loyalty.identity_customer.model.AttributeModel;
+import com.loyalty.identity_customer.model.OperatorModel;
+import com.loyalty.identity_customer.response.CustomerAttributeResponse;
+import com.loyalty.identity_customer.response.GroupResponse;
+
+function boolean checkCondition(String attributeValue, OperatorModel operator, String conditionValue) {
+    double attributeDouble = Double.parseDouble(attributeValue);
+    double conditionDouble = Double.parseDouble(conditionValue);
+
+    switch (operator.getNotation()) {
+        case ">":
+            return attributeDouble > conditionDouble;
+        case "<":
+            return attributeDouble < conditionDouble;
+        case "=":
+            return attributeValue.equals(conditionValue);
+        case ">=":
+            return attributeDouble >= conditionDouble;
+        case "<=":
+            return attributeDouble <= conditionDouble;
+        default:
+            throw new IllegalArgumentException("Unsupported operator: " + operator.getNotation());
+    }
+}
+
+
+rule "check group has condition"
+    when
+        // xác định các đối tượng cần lấy để kiểm tra
+        $customerAttribute: CustomerAttributeResponse($customerId: customer_id, $attributeId: attribute_id, $value: value)
+        $group: GroupResponse(conditionResponse.getCondition_id != null)
+        //$condition: ConditionModel() from $group.getConditionModel
+        //$operator: OperatorModel() from $condition.getOperatorModel
+        // lấy ra attribute trong condition tương ứng với attribute trong customer_attribute để check điều kiện
+        eval($group.getConditionResponse().getAttribute_id() == $attributeId)
+        // đưa value của thuộc tính trong customer_attribute đi so sánh với value trong condition của attribute đó
+        eval(checkCondition($value, $operator, $condition.getValue()))
+    then
+        // hiển thị ra kết quả
+        System.out.println("Customer with ID " + $customerId + " thoa man group " + $group.getGroup_id() + "\nwith condition: " + $condition + "\ntrong khi KH co " + $customerAttribute + ". Applying label " + $group.getLabelModel().getLabel_id());
+    end
+
+// check các group có group con
+//rule "check group no condition"
+    //when
+        //$customerAttribute: CustomerAttributeModel($customerId: id.customerId, $attributeId: id.attributeId, $value: value)
+        //$group: GroupModel(conditionModel == null)
+    //then
+        //System.out.print("Đã chạy");
+    //end
+
+// dynamic loading.....
+// salience: xác định độ ưu tiên của các rule, salience nào càng lớn thì được thực hiện trước
+// activation-group: Ngăn chặn việc kích hoạt nhiều hơn một rule từ cùng một nhóm (activation group) trong một lần chạy.
+                  //Cách sử dụng: Khi một rule trong activation group được kích hoạt,
+                  //   các rule khác trong cùng activation group sẽ bị ngăn chặn và không được kích hoạt trong lần chạy hiện tại.
+//  agenda-group: Quản lý thứ tự thực thi của các rule và chạy nhóm rule cụ thể theo yêu cầu.
+                  // Cách sử dụng: Khi một rule thuộc một agenda group được kích hoạt,
+                   //chỉ những rule trong cùng agenda grou p đó mới được thêm vào agenda để thực thi.
+//  ruleflow-group: Được sử dụng trong ngữ cảnh của quy trình luồng (rule flow) để quản lý và kiểm soát việc thực thi các rule trong một quy trình luồng cụ thể.
+                    // Cách sử dụng: Khi một quy trình luồng được kích hoạt, chỉ những rule thuộc cùng một rule flow group sẽ được thực thi.
